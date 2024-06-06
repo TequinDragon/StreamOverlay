@@ -3,8 +3,18 @@ import { StaticAuthProvider } from '@twurple/auth';
 import { IncomingMessage } from 'http';
 
 import { promises as fs } from 'fs';
+import path from 'node:path';
+const { platform } = require('node:process');
 
-const tokens_file = 'tokens.json';
+// Store credentials in the user's %APPDATA% or ~/.config/ paths
+const configPath =
+	platform == 'win32'
+		? path.resolve((await import('$env/static/private')).APPDATA, 'stream-overlay')
+		: path.resolve((await import('$env/static/private')).HOME, '.config', 'stream-overlay');
+
+await fs.mkdir(configPath);
+
+const tokens_file = path.resolve(configPath, 'tokens.json');
 
 const userTokens = await fs
 	.readFile(tokens_file, 'utf-8')

@@ -21,14 +21,14 @@
 <Panel />
 
 <div class="absolute bottom-0 w-screen text-center">
-	<Panel>
-		<h1 class="mb-2 text-5xl">There is where the stream overlay would go</h1>
+	<h1 class="mb-2 text-6xl font-bold uppercase" style="-webkit-text-stroke: 0.04em black">
+		There is where the stream overlay would go
+	</h1>
 		<img
 			class="mx-auto"
 			src="https://media1.tenor.com/m/N2hV1al2rjcAAAAC/if-i-had-one-angry.gif"
 			alt=""
 		/>
-	</Panel>
 </div>
 
 <style>
