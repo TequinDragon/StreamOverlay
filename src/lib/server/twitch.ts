@@ -4,7 +4,7 @@ import { IncomingMessage } from 'http';
 
 import { promises as fs } from 'fs';
 import path from 'node:path';
-const { platform } = require('node:process');
+const { platform } = await import('node:process');
 
 // Store credentials in the user's %APPDATA% or ~/.config/ paths
 const configPath =
@@ -12,7 +12,7 @@ const configPath =
 		? path.resolve((await import('$env/static/private')).APPDATA, 'stream-overlay')
 		: path.resolve((await import('$env/static/private')).HOME, '.config', 'stream-overlay');
 
-await fs.mkdir(configPath);
+await fs.mkdir(configPath, {recursive: true});
 
 const tokens_file = path.resolve(configPath, 'tokens.json');
 
