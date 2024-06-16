@@ -34,26 +34,34 @@ class Configuration {
 		this.data = {};
 	}
 
-	public commit = async (): Promise<void> =>
-		fs.writeFile(this.path, JSON.stringify(this.data), 'utf-8');
+	public async commit (): Promise<void> {
+		const payload = JSON.stringify(this.data)
+		// console.debug(`Writing config to ${this.path}`, this.data, payload)
+		await fs.writeFile(this.path, JSON.stringify(this.data), 'utf-8');
+	}
 
 	public load = async (): Promise<void> => {
 		this.data = await this.read();
+		if (this.data === null)
+			this.data = {}
 	};
 
-	private read = (): Promise<config> =>
-		fs
-			.readFile(this.path, 'utf-8')
-			.then((data) =>
-				JSON.parse(data, (_key, value) => {
-					const date = Date.parse(value);
-					if (date !== Number.NaN) return new Date(date);
-					return value;
-				}),
-			)
-			.catch((_e) => {
-				return {};
-			});
+	private async read(): Promise<config> {
+		const payload = await fs.readFile(this.path, 'utf-8')
+		const data = JSON.parse(payload, (_key, value) => {
+			if (typeof(value) !== "string")
+				return value
+
+			const date = Date.parse(value);
+			if (!isNaN(date))
+				return new Date(date);
+
+			return value;
+		})
+
+		// console.debug(`Loaded data from ${this.path}`, payload, data)
+		return data;
+	}
 }
 
 export const config = new Configuration(kTokensFile);
