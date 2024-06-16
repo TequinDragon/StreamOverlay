@@ -17,6 +17,7 @@ await fs.mkdir(configPath, { recursive: true });
 export const kTokensFile = path.resolve(configPath, 'config.json');
 
 interface TwitchAuth {
+	userId: number;
 	user: string;
 	accessToken: string;
 	refreshToken: string | null;

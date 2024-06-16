@@ -29,7 +29,7 @@ interface TwitchEventMap {
 	onChannelFollow: [EventSubChannelFollowEvent];
 }
 
-export type TwitchEventEmitter = EventEmitter<TwitchEventMap>
+export type TwitchEventEmitter = EventEmitter<TwitchEventMap>;
 
 export class TwitchStuff {
 	public static async fetchUserAccessToken(token: string): Promise<void> {
@@ -68,7 +68,11 @@ export class TwitchStuff {
 	}
 
 	public static getUser(): string | null {
-		return config.data.twitch?.user ?? null
+		return config.data.twitch?.user ?? null;
+	}
+
+	public static getUserId(): number | null {
+		return config.data.twitch?.userId ?? null;
 	}
 
 	private static _auth: AuthProvider | null = null;
@@ -80,8 +84,7 @@ export class TwitchStuff {
 			clientSecret: TWITCH_CLIENT_SECRET,
 		});
 		const twitch = config.data.twitch;
-		if (twitch == null)
-			throw new Error('missing credentials');
+		if (twitch == null) throw new Error('missing credentials');
 		auth.addUserForToken({
 			accessToken: twitch.accessToken,
 			refreshToken: twitch.refreshToken,
@@ -90,34 +93,39 @@ export class TwitchStuff {
 		});
 
 		auth.onRefresh(async (userId, token) => {
-			const obtained = new Date(token.obtainmentTimestamp)
-			const expires = new Date(token.obtainmentTimestamp + (token.expiresIn! * 1000))
-			config.data.twitch =
-			{
+			const obtained = new Date(token.obtainmentTimestamp);
+			const expires = new Date(token.obtainmentTimestamp + token.expiresIn! * 1000);
+			config.data.twitch = {
 				...twitch,
 				accessToken: token.accessToken,
 				refreshToken: token.refreshToken,
 				obtained,
 				expires,
-			}
-			await config.commit()
-		})
+			};
+			await config.commit();
+		});
 
 		auth.onRefreshFailure(async (_userId, error) => {
-			console.error("There was a problem while refreshing the Twitch access token", error)
+			console.error('There was a problem while refreshing the Twitch access token', error);
 
 			// Clear the saves user tokens in case they're really invalid and need to start over.
-			config.data.twitch = undefined
-			await config.commit()
-		})
+			config.data.twitch = undefined;
+			await config.commit();
+		});
 
 		return (this._auth = auth);
 	}
 
+	private static _apiClient: ApiClient | null = null;
+	public static getAPI(): ApiClient {
+		if (this._apiClient != null) return this._apiClient;
+
+		return (this._apiClient = new ApiClient({ authProvider: this.getAuth() }));
+	}
+
 	private static _eventSubListener: EventSubWsListener | null = null;
 	private static async _getEventSubListener(): Promise<EventSubWsListener> {
-		if (this._eventSubListener != null)
-			return this._eventSubListener;
+		if (this._eventSubListener != null) return this._eventSubListener;
 
 		const twitchApi = new ApiClient({ authProvider: this.getAuth() });
 		//const user = await twitchApi.users.getUserByName(config.data.twitch!.user);
@@ -130,29 +138,28 @@ export class TwitchStuff {
 			// }
 		});
 
-		this._eventSubListener.start()
+		this._eventSubListener.start();
 
 		return this._eventSubListener;
 	}
 
-	private static _emitter: TwitchEventEmitter | null = null
+	private static _emitter: TwitchEventEmitter | null = null;
 
 	public static async getEventSubListener(): Promise<TwitchEventEmitter> {
-		if (this._emitter != null)
-			return this._emitter
+		if (this._emitter != null) return this._emitter;
 
 		const eventSub = await this._getEventSubListener();
-		const twitchApi = new ApiClient({authProvider: TwitchStuff.getAuth()});
+		const twitchApi = new ApiClient({ authProvider: TwitchStuff.getAuth() });
 		const user = await twitchApi.users.getUserByName(config.data.twitch!.user);
 
 		// Each EventSubListener.on<Event> will create a new subscription request to Twitch
 		// Which isn't suitable for multiple listeners...
 		// So we need to create a single subscription, and re-emit them in our own EventEmitter
 		// to allow multiple listeners to the same event.
-		const emitter = this._emitter = new EventEmitter<TwitchEventMap>()
+		const emitter = (this._emitter = new EventEmitter<TwitchEventMap>());
 		// TODO: Instead of hardcoding each event. Somehow subscribe to each event we want automatically.
-		eventSub.onChannelFollow(user!, user!, (event) => emitter.emit('onChannelFollow', event))
+		eventSub.onChannelFollow(user!, user!, (event) => emitter.emit('onChannelFollow', event));
 
-		return emitter
+		return emitter;
 	}
 }

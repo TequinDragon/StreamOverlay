@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { Button, Card, FloatingLabelInput } from 'flowbite-svelte';
+	import { enhance } from '$app/forms';
+	import type { PageData } from './$types';
+	import { Button, Card, Input, Label } from 'flowbite-svelte';
 
 	import twitchlLogo from '$lib/assets/twitch-logo.png';
 	import obsLogo from '$lib/assets/obs-logo.png';
-	import type { PageData } from './$types';
 
-	export let data: PageData
+	export let data: PageData;
 
 	interface ApiStatus {
 		name: string;
@@ -13,7 +14,6 @@
 		status: string;
 		actions: Record<string, string>;
 	}
-
 
 	// TODO: This needs to be served from +page.server.ts
 	let apiStatus: ApiStatus[] = [
@@ -34,7 +34,7 @@
 	];
 </script>
 
-<div class="m-2 flex flex-col gap-2">
+<div class="m-2 flex gap-2">
 	<Card>
 		<h5 class="text-2xl">API Status</h5>
 		<ul class="divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
@@ -66,14 +66,39 @@
 	</Card>
 
 	<Card>
-		<form on:submit={(e) => e.preventDefault()}>
+		<form
+			action="?/twitch_update"
+			method="post"
+			use:enhance={() => {
+				return ({ update }) => {
+					update({ reset: false });
+				};
+			}}
+		>
+			<h5 class="text-2xl mb-2">Stream Settings</h5>
+			<div class="grid gap-2 mb-2">
+				<div>
+					<Label for="stream-title">Stream Title</Label>
+					<Input
+						id="stream-title"
+						name="title"
+						type="text"
+						placeholder="Licking 9V Batteries"
+						value={data.twitch.stream.title}
+					/>
+				</div>
+			</div>
+			<Button type="submit" class="w-fit">Update</Button>
+		</form>
+	</Card>
+
+	<Card>
+		<form action="?/toast" method="post" use:enhance>
 			<h5 class="text-2xl mb-2">Toast Notification</h5>
 			<div class="grid gap-6 mb-2">
-				<FloatingLabelInput style="outlined" id="toast_message" name="toast_message" type="text">
-					Message
-				</FloatingLabelInput>
+				<Input id="toast_message" name="toast_message" type="text" placeholder="Message" />
 			</div>
-			<Button class="w-fit" on:click={(e) => fetch('?/toast', { method: 'post', body:  new FormData(e.target.form)})}>Send Toast</Button>
+			<Button class="w-fit" type="submit">Send Toast</Button>
 		</form>
 	</Card>
 </div>
