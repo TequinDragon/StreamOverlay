@@ -3,6 +3,9 @@
 
 	import twitchlLogo from '$lib/assets/twitch-logo.png';
 	import obsLogo from '$lib/assets/obs-logo.png';
+	import type { PageData } from './$types';
+
+	export let data: PageData
 
 	interface ApiStatus {
 		name: string;
@@ -11,12 +14,13 @@
 		actions: Record<string, string>;
 	}
 
+
 	// TODO: This needs to be served from +page.server.ts
 	let apiStatus: ApiStatus[] = [
 		{
 			name: 'Twitch',
 			icon: twitchlLogo,
-			status: '(unknown)',
+			status: data.twitch.user ?? '(unknown)',
 			actions: {
 				Connect: '?/twitch_connect',
 			},
@@ -51,7 +55,7 @@
 						<div class="flex-none items-center text-base font-semibold text-gray-900">
 							<form method="post">
 								{#each Object.keys(connection.actions) as action}
-									<Button formaction={connection.actions[action]}>{action}</Button>
+									<Button type="submit" formaction={connection.actions[action]}>{action}</Button>
 								{/each}
 							</form>
 						</div>

@@ -1,9 +1,16 @@
 import { emitter } from '$lib/server/events';
 import { TwitchStuff } from '$lib/server/twitch';
+
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async (_request) => {};
+export const load: PageServerLoad = async (_request) => {
+	return {
+		twitch: {
+			user: TwitchStuff.getUser() ?? '(unknown)'
+		}
+	}
+};
 
 export const actions: Actions = {
 	twitch_connect: async (_event) => {
@@ -17,7 +24,5 @@ export const actions: Actions = {
 			duration: 5000,
 			message: data.get('toast_message')!.toString(),
 		});
-
-		console.debug(request);
 	}
 };
