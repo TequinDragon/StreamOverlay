@@ -60,4 +60,16 @@
 			{/each}
 		</ul>
 	</Card>
+
+	<Card>
+		<form on:submit={(e) => e.preventDefault()}>
+			<h5 class="text-2xl mb-2">Toast Notification</h5>
+			<div class="grid gap-6 mb-2">
+				<FloatingLabelInput style="outlined" id="toast_message" name="toast_message" type="text">
+					Message
+				</FloatingLabelInput>
+			</div>
+			<Button class="w-fit" on:click={(e) => fetch('?/toast', { method: 'post', body:  new FormData(e.target.form)})}>Send Toast</Button>
+		</form>
+	</Card>
 </div>
